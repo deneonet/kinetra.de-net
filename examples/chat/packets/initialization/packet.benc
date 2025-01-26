@@ -1,0 +1,12 @@
+header initialization;
+
+ctr Username {
+    string data = 1;
+}
+
+ctr Response {
+    byte data = 1;
+}
+
+# DO NOT EDIT.
+# [meta_s] eyJtc2dzIjp7IlJlc3BvbnNlIjp7InJJZHMiOm51bGwsImZpZWxkcyI6eyIxIjp7IklkIjoxLCJOYW1lIjoiZGF0YSIsIlR5cGUiOnsiVG9rZW5UeXBlIjoxOSwiTWFwS2V5VHlwZSI6bnVsbCwiQ2hpbGRUeXBlIjpudWxsLCJDdHJOYW1lIjoiIiwiSXNVbnNhZmUiOmZhbHNlLCJJc0FycmF5IjpmYWxzZSwiSXNNYXAiOmZhbHNlfX19fSwiVXNlcm5hbWUiOnsicklkcyI6bnVsbCwiZmllbGRzIjp7IjEiOnsiSWQiOjEsIk5hbWUiOiJkYXRhIiwiVHlwZSI6eyJUb2tlblR5cGUiOjE1LCJNYXBLZXlUeXBlIjpudWxsLCJDaGlsZFR5cGUiOm51bGwsIkN0ck5hbWUiOiIiLCJJc1Vuc2FmZSI6ZmFsc2UsIklzQXJyYXkiOmZhbHNlLCJJc01hcCI6ZmFsc2V9fX19fX0= [meta_e]

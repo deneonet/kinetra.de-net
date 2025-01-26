@@ -13,7 +13,7 @@ func main() {
 
 	fmt.Printf("Generating for version: %d\n", *version)
 
-	if err := cert.GenerateCertificateChain(*version, "s.cert", "root.key"); err != nil {
+	if err := cert.GenerateCertificateChain(*version, "server.kc", "client.kr"); err != nil {
 		panic(err)
 	}
 }

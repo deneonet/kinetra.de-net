@@ -28,4 +28,5 @@ var (
 	ErrInvalidHandshakePacket   = errors.New("invalid handshake packet received")
 	ErrBufTooSmall              = errors.New("buffer is too small for the requested size")
 	ErrInvalidRootKey           = errors.New("invalid root key in client struct")
+	ErrDataExceededBufferSize   = errors.New("received data size exceeded buffer size")
 )
