@@ -23,9 +23,9 @@ const (
 )
 
 var (
-	ErrSessionNotFound          = errors.New("no session with that remote address found")
-	ErrDecryptingVerificationId = errors.New("error decrypting verification id")
-	ErrInvalidHandshakePacket   = errors.New("invalid handshake packet received")
-	ErrBufTooSmall              = errors.New("buffer is too small for the requested size")
-	ErrInvalidRootKey           = errors.New("invalid root key in client struct")
+	ErrSessionNotFound              = errors.New("no session associated with that connection found")
+	ErrInvalidRootKey               = errors.New("invalid root key in client struct")
+	ErrInvalidHandshakePacket       = errors.New("invalid handshake packet received")
+	ErrDecryptingServerVerification = errors.New("error decrypting server verification")
+	ErrDataExceededBufferSize       = errors.New("received data size exceeded buffer size")
 )

@@ -12,6 +12,8 @@ var (
 	ErrCipherTextTooShort = errors.New("cipher text length is smaller than nonce length")
 )
 
+// Encrypt encrypts the provided data using the given AES key and returns the ciphertext
+// which includes the nonce as the first part of the result.
 func Encrypt(key, data []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -32,6 +34,8 @@ func Encrypt(key, data []byte) ([]byte, error) {
 	return cipherText, nil
 }
 
+// Decrypt decrypts the provided ciphertext using the given AES key and returns the decrypted data.
+// The ciphertext must include the nonce at the start.
 func Decrypt(key, cipherData []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -49,6 +53,5 @@ func Decrypt(key, cipherData []byte) ([]byte, error) {
 	}
 
 	nonce, cipherText := cipherData[:nonceSize], cipherData[nonceSize:]
-	plainData, err := aesGCM.Open(nil, nonce, cipherText, nil)
-	return plainData, err
+	return aesGCM.Open(nil, nonce, cipherText, nil)
 }

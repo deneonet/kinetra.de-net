@@ -1,0 +1,18 @@
+define handshake;
+
+var go_package = "github.com/deneonet/knet/handshake";
+
+enum PacketType {
+	CertificateRequest,
+	CertificateResponse,
+	ServerVerification,
+	ClientInformation
+}
+
+ctr Packet {
+    bytes payload = 1;
+    PacketType type = 2;
+}
+
+# DO NOT EDIT.
+# [meta_s] eyJtc2dzIjp7IlBhY2tldCI6eyJySWRzIjpudWxsLCJmaWVsZHMiOnsiMSI6eyJpZCI6MSwiTmFtZSI6InBheWxvYWQiLCJUeXBlIjp7IlRva2VuVHlwZSI6MTksIk1hcEtleVR5cGUiOm51bGwsIkNoaWxkVHlwZSI6bnVsbCwiY3RyTmFtZSI6IiIsIklzVW5zYWZlIjpmYWxzZSwiSXNBcnJheSI6ZmFsc2UsIklzTWFwIjpmYWxzZX19LCIyIjp7ImlkIjoyLCJOYW1lIjoidHlwZSIsIlR5cGUiOnsiVG9rZW5UeXBlIjowLCJNYXBLZXlUeXBlIjpudWxsLCJDaGlsZFR5cGUiOm51bGwsImN0ck5hbWUiOiJQYWNrZXRUeXBlIiwiSXNVbnNhZmUiOmZhbHNlLCJJc0FycmF5IjpmYWxzZSwiSXNNYXAiOmZhbHNlfX19fX19 [meta_e]
