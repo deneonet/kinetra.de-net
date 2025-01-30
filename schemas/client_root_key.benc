@@ -1,0 +1,13 @@
+define cert;
+
+var go_package = "github.com/deneonet/knet/cert";
+
+ctr ClientRootKey {
+    bytes key = 1;
+
+    int version = 2;
+    int64 createdAt = 3;
+}
+
+# DO NOT EDIT.
+# [meta_s] eyJtc2dzIjp7IkNsaWVudFJvb3RLZXkiOnsicklkcyI6bnVsbCwiZmllbGRzIjp7IjEiOnsiaWQiOjEsIk5hbWUiOiJrZXkiLCJUeXBlIjp7IlRva2VuVHlwZSI6MTksIk1hcEtleVR5cGUiOm51bGwsIkNoaWxkVHlwZSI6bnVsbCwiY3RyTmFtZSI6IiIsIklzVW5zYWZlIjpmYWxzZSwiSXNBcnJheSI6ZmFsc2UsIklzTWFwIjpmYWxzZX19LCIyIjp7ImlkIjoyLCJOYW1lIjoidmVyc2lvbiIsIlR5cGUiOnsiVG9rZW5UeXBlIjoxNCwiTWFwS2V5VHlwZSI6bnVsbCwiQ2hpbGRUeXBlIjpudWxsLCJjdHJOYW1lIjoiIiwiSXNVbnNhZmUiOmZhbHNlLCJJc0FycmF5IjpmYWxzZSwiSXNNYXAiOmZhbHNlfX0sIjMiOnsiaWQiOjMsIk5hbWUiOiJjcmVhdGVkQXQiLCJUeXBlIjp7IlRva2VuVHlwZSI6MTEsIk1hcEtleVR5cGUiOm51bGwsIkNoaWxkVHlwZSI6bnVsbCwiY3RyTmFtZSI6IiIsIklzVW5zYWZlIjpmYWxzZSwiSXNBcnJheSI6ZmFsc2UsIklzTWFwIjpmYWxzZX19fX19fQ== [meta_e]

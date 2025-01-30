@@ -4,11 +4,11 @@ import (
 	"flag"
 	"fmt"
 
-	"kinetra.de/net/cert"
+	"github.com/deneonet/knet/cert"
 )
 
 func main() {
-	version := flag.Int("v", 0x01, "Certificate And Root Key version")
+	version := flag.Int("v", 0x01, "Server certificate and client root key version.")
 	flag.Parse()
 
 	fmt.Printf("Generating for version: %d\n", *version)

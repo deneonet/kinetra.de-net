@@ -1,9 +1,0 @@
-header packets;
-
-ctr HandshakePacket {
-    byte id = 1;
-    bytes payload = 2;
-}
-
-# DO NOT EDIT.
-# [meta_s] eyJtc2dzIjp7IkhhbmRzaGFrZVBhY2tldCI6eyJySWRzIjpudWxsLCJmaWVsZHMiOnsiMSI6eyJJZCI6MSwiTmFtZSI6ImlkIiwiVHlwZSI6eyJUb2tlblR5cGUiOjE5LCJNYXBLZXlUeXBlIjpudWxsLCJDaGlsZFR5cGUiOm51bGwsIkN0ck5hbWUiOiIiLCJJc1Vuc2FmZSI6ZmFsc2UsIklzQXJyYXkiOmZhbHNlLCJJc01hcCI6ZmFsc2V9fSwiMiI6eyJJZCI6MiwiTmFtZSI6InBheWxvYWQiLCJUeXBlIjp7IlRva2VuVHlwZSI6MTQsIk1hcEtleVR5cGUiOm51bGwsIkNoaWxkVHlwZSI6bnVsbCwiQ3RyTmFtZSI6IiIsIklzVW5zYWZlIjpmYWxzZSwiSXNBcnJheSI6ZmFsc2UsIklzTWFwIjpmYWxzZX19fX19fQ== [meta_e]

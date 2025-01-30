@@ -6,13 +6,14 @@ import (
 	"io"
 	"net"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
-	"kinetra.de/net/cert"
-	"kinetra.de/net/crypto"
-	"kinetra.de/net/netutils"
-	"kinetra.de/net/packets"
+	"github.com/deneonet/knet/cert"
+	"github.com/deneonet/knet/crypto"
+	"github.com/deneonet/knet/handshake"
+	"github.com/deneonet/knet/netutils"
 
 	bstd "github.com/deneonet/benc/std"
 )
@@ -20,10 +21,11 @@ import (
 type Server struct {
 	Addr                   string
 	CertFile               string
-	cert                   cert.Certificate
+	cert                   cert.ServerCertificate
 	priv                   *ecdh.PrivateKey
 	sessions               map[net.Conn]ServerSession
 	mutex                  sync.RWMutex
+	netUtilsSettings       netutils.NetUtilsSettings
 	ReadDeadline           time.Duration
 	WriteDeadline          time.Duration
 	HandshakeReadDeadline  time.Duration
@@ -83,22 +85,6 @@ func (s *Server) connectionPurge() {
 	}
 }
 
-func (s *Server) setDeadline(conn net.Conn, handshakeComplete bool) {
-	conn.SetDeadline(time.Time{})
-
-	readDeadline, writeDeadline := s.ReadDeadline, s.WriteDeadline
-	if !handshakeComplete {
-		readDeadline, writeDeadline = s.HandshakeReadDeadline, s.HandshakeWriteDeadline
-	}
-
-	if readDeadline > 0 {
-		conn.SetReadDeadline(time.Now().Add(readDeadline))
-	}
-	if writeDeadline > 0 {
-		conn.SetWriteDeadline(time.Now().Add(writeDeadline))
-	}
-}
-
 func (s *Server) handleConnectionError(conn net.Conn, err error) connectionErrorResult {
 	if err == nil {
 		return connectionErrorMoveOn
@@ -123,8 +109,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 	var session ServerSession
 
 	for {
-		s.setDeadline(conn, handshakeComplete)
-		size, err := netutils.ReadFromConn(conn, buf)
+		size, err := netutils.ReadFromConn(conn, buf, &s.netUtilsSettings)
 
 		if int(size) > len(buf) {
 			if result := s.handleConnectionError(conn, ErrDataExceededBufferSize); result == connectionErrorReturn {
@@ -156,7 +141,8 @@ func (s *Server) handleConnection(conn net.Conn) {
 			if result == ServerHandshakeComplete {
 				handshakeComplete = true
 				session, _ = s.GetSession(conn)
-				s.setDeadline(conn, handshakeComplete)
+
+				s.netUtilsSettings.HandshakeCompleted = true
 
 				if s.OnSecureConnect != nil && s.OnSecureConnect(conn, session) == Close {
 					break
@@ -198,18 +184,18 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) processHandshake(conn net.Conn, buf []byte) (ServerHandshakeResult, error) {
-	packet, err := packets.UnmarshalHandshakePacket(buf)
+	packet, err := handshake.UnmarshalHandshakePacket(buf)
 	if err != nil {
 		return ServerHandshakeError, err
 	}
 
-	switch packets.HandshakePacketId(packet.Id) {
-	case packets.CertificateRequest:
-		if err = packets.SendCertResponseHandshakePacket(conn, packets.CertificateResponse, s.cert); err != nil {
+	switch packet.Type {
+	case handshake.PacketTypeCertificateRequest:
+		if err = handshake.SendCertResponseHandshakePacket(conn, s.cert, &s.netUtilsSettings); err != nil {
 			return ServerHandshakeError, err
 		}
 		return ServerContinueHandshake, nil
-	case packets.ClientInformation:
+	case handshake.PacketTypeClientInformation:
 		clientPublicKey, err := ecdh.P521().NewPublicKey(packet.Payload)
 		if err != nil {
 			return ServerHandshakeError, err
@@ -232,7 +218,7 @@ func (s *Server) processHandshake(conn net.Conn, buf []byte) (ServerHandshakeRes
 			return ServerHandshakeError, err
 		}
 
-		if err := packets.SendHandshakePacket(conn, packets.ServerVerification, verification); err != nil {
+		if err := handshake.SendHandshakePacket(conn, handshake.PacketTypeServerVerification, verification, &s.netUtilsSettings); err != nil {
 			return ServerHandshakeError, err
 		}
 		return ServerHandshakeComplete, nil
@@ -275,11 +261,11 @@ func (s *Server) Run() error {
 		s.sessions = make(map[net.Conn]ServerSession)
 	}
 
-	if s.HandshakeReadDeadline == 0 {
-		s.HandshakeReadDeadline = 500 * time.Millisecond
-	}
-	if s.HandshakeWriteDeadline == 0 {
-		s.HandshakeWriteDeadline = 500 * time.Millisecond
+	s.netUtilsSettings = netutils.NetUtilsSettings{
+		HandshakeReadDeadline:  s.HandshakeReadDeadline,
+		HandshakeWriteDeadline: s.HandshakeWriteDeadline,
+		ReadDeadline:           s.ReadDeadline,
+		WriteDeadline:          s.WriteDeadline,
 	}
 
 	if s.OnAcceptingError == nil {
@@ -312,11 +298,11 @@ func (s *Server) Send(conn net.Conn, b []byte) error {
 	if err != nil {
 		return err
 	}
-	return netutils.SendToConn(conn, len(encrypted)+1, func(n int, buf []byte) { buf[n] = 1; copy(buf[n+1:], encrypted) })
+	return netutils.SendToConn(conn, len(encrypted)+1, func(n int, buf []byte) { buf[n] = 1; copy(buf[n+1:], encrypted) }, &s.netUtilsSettings)
 }
 
 func (s *Server) SendUnsecure(conn net.Conn, b []byte) error {
-	return netutils.SendToConn(conn, len(b)+1, func(n int, buf []byte) { buf[n] = 0; copy(buf[n+1:], b) })
+	return netutils.SendToConn(conn, len(b)+1, func(n int, buf []byte) { buf[n] = 0; copy(buf[n+1:], b) }, &s.netUtilsSettings)
 }
 
 func (s *Server) UnmarshalPacket(buf []byte, f func(int, []byte) error) error {
@@ -374,37 +360,31 @@ func (s *Server) SendUnsecureToAll(buf []byte) error {
 
 	return nil
 }
-func (s *Server) Store(conn net.Conn, key string, value interface{}) error {
-	ses, ok := s.GetSession(conn)
-	if !ok {
-		return ErrSessionNotFound
-	}
 
-	s.mutex.Lock()
-	ses.Data[key] = value
-	s.mutex.Unlock()
+func (s *Server) SendToAllExcept(buf []byte, conns ...net.Conn) error {
+	for conn := range s.sessions {
+		if slices.Contains(conns, conn) {
+			continue
+		}
+		if err := s.Send(conn, buf); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
 
-func (s *Server) Get(conn net.Conn, key string) (interface{}, error) {
-	ses, ok := s.GetSession(conn)
-	if !ok {
-		return nil, ErrSessionNotFound
-	}
-
-	s.mutex.Lock()
-	value := ses.Data[key]
-	s.mutex.Unlock()
-
-	return value, nil
+func (s *Server) SendPacketToAllExcept(id int, p Packet, conns ...net.Conn) error {
+	buf := make([]byte, p.Size()+bstd.SizeInt(id))
+	n := bstd.MarshalInt(0, buf, id)
+	p.Marshal(buf[n:])
+	return s.SendToAllExcept(buf, conns...)
 }
 
 func (s *Server) GetSession(conn net.Conn) (ServerSession, bool) {
-	s.mutex.Lock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	ses, ok := s.sessions[conn]
-	s.mutex.Unlock()
-
 	return ses, ok
 }
 
@@ -418,4 +398,26 @@ func (s *Server) RemoveSession(conn net.Conn) {
 	s.mutex.Lock()
 	delete(s.sessions, conn)
 	s.mutex.Unlock()
+}
+
+func (s *Server) Get(conn net.Conn, key string) (interface{}, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	ses, ok := s.sessions[conn]
+	if !ok {
+		return nil, ErrSessionNotFound
+	}
+	return ses.Data[key], nil
+}
+
+func (s *Server) Store(conn net.Conn, key string, value interface{}) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	ses, ok := s.sessions[conn]
+	if !ok {
+		return ErrSessionNotFound
+	}
+	ses.Data[key] = value
+	s.sessions[conn] = ses
+	return nil
 }
